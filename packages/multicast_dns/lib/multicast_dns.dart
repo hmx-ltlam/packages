@@ -56,6 +56,14 @@ class MDnsClient {
 
   InternetAddress? _mDnsAddress;
   int? _mDnsPort;
+    
+  /// Validate socket internet address
+  bool isValidInternetAddress(RawDatagramSocket socket) {
+    return (socket.address.address.isNotEmpty
+      && socket.address.address != null
+      && socket.address.address != "0.0.0.0"
+      && socket.address.address != "::");
+  }  
 
   /// Find all network interfaces with an the [InternetAddressType] specified.
   Future<Iterable<NetworkInterface>> allInterfacesFactory(
@@ -222,7 +230,9 @@ class MDnsClient {
     // Send the request on all interfaces.
     final List<int> packet = query.encode();
     for (final RawDatagramSocket socket in _sockets) {
-      socket.send(packet, _mDnsAddress!, selectedMDnsPort);
+      if (isValidInternetAddress(socket)) {
+        socket.send(packet, _mDnsAddress!, selectedMDnsPort);
+      }
     }
     return results;
   }
